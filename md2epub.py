@@ -53,11 +53,11 @@ class EPub:
 			os.chdir('META-INF')
 			f = open('container.xml','w')
 			f.write('''<?xml version="1.0"?>
-	<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
-		<rootfiles>
-			<rootfile full-path="OEBPS/metadata.opf" media-type="application/oebps-package+xml" />
-		</rootfiles>
-	</container>''')
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+	<rootfiles>
+		<rootfile full-path="OEBPS/metadata.opf" media-type="application/oebps-package+xml" />
+	</rootfiles>
+</container>''')
 			f.close()
 			os.chdir('..')
 
@@ -66,24 +66,24 @@ class EPub:
 			os.chdir('OEBPS')
 			f = open('metadata.opf','w')
 			f.write('''<?xml version="1.0"?>
-	<package version="2.0" xmlns="http://www.idpf.org/2007/opf"
-			 unique-identifier="bookid">
-		<metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
-			<dc:title>''' + self.title + '''</dc:title>
-			<dc:creator opf:role="aut">''' + self.author + '''</dc:creator>
-			<dc:language>''' + self.lang + '''</dc:language>
-			<dc:identifier id="bookid">''' + self.url + ':' + self.bookid + '''</dc:identifier>
-		</metadata>
-		<manifest>
-			<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
-	''')
+<package version="2.0" xmlns="http://www.idpf.org/2007/opf"
+		 unique-identifier="bookid">
+	<metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+		<dc:title>''' + self.title + '''</dc:title>
+		<dc:creator opf:role="aut">''' + self.author + '''</dc:creator>
+		<dc:language>''' + self.lang + '''</dc:language>
+		<dc:identifier id="bookid">''' + self.url + '''</dc:identifier>
+	</metadata>
+	<manifest>
+		<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
+''')
 
 			if self.css:
 				f.write('\t\t<item id="style" href="' + os.path.basename(self.css) + '" media-type="application/css" />')
 
 			for chapter in self.content:
 				f.write('''
-			<item id="''' + chapter.id + '''" href="''' + chapter.htmlfile + '''" media-type="application/xhtml+xml" />''')
+		<item id="''' + chapter.id + '''" href="''' + chapter.htmlfile + '''" media-type="application/xhtml+xml" />''')
 
 			for image in self.images:
 				imagefile = os.path.basename(image)
@@ -91,49 +91,50 @@ class EPub:
 				if ext == 'jpg':
 					ext = 'jpeg'
 				f.write('''
-			<item id="''' + imagefile + '''" href="''' + imagefile + '''" media-type="image/''' + ext + '''" />''')
+		<item id="''' + imagefile + '''" href="''' + imagefile + '''" media-type="image/''' + ext + '''" />''')
 
 			f.write('''
-		</manifest>
-		<spine toc="ncx">''')
+	</manifest>
+	<spine toc="ncx">''')
 
 			for chapter in self.content:
 				f.write('''
-			<itemref idref="''' + chapter.id + '''"/>''')
+		<itemref idref="''' + chapter.id + '''"/>''')
 
 			f.write('''
-		</spine>
-	</package>''')
+	</spine>
+</package>''')
 
 			f.close()
 
 			# make toc.ncx
 			f = open('toc.ncx','w')
 			f.write('''<?xml version="1.0" encoding="UTF-8"?>
-	<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
-		<head>
-			<meta name="dtb:uid" content="''' + self.url + ':' + self.bookid + '''" />
-			<meta name="dtb:depth" content="1" />
-			<meta name="dtb:totalPageCount" content="0" />
-			<meta name="dtb:maxPageNumber" content="0" />
-		</head>
-		<docTitle>
-			<text>''' + self.title + '''</text>
-		</docTitle>
-		<navMap>''')
+<!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN" "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+	<head>
+		<meta name="dtb:uid" content="''' + self.url + '''" />
+		<meta name="dtb:depth" content="1" />
+		<meta name="dtb:totalPageCount" content="0" />
+		<meta name="dtb:maxPageNumber" content="0" />
+	</head>
+	<docTitle>
+		<text>''' + self.title + '''</text>
+	</docTitle>
+	<navMap>''')
 
 			n = 1
 			for chapter in self.content:
 				f.write('''
-			<navPoint id="''' + chapter.id + '''" playOrder="''' + str(n) + '''">
-				<navLabel><text>''' + chapter.title + '''</text></navLabel>
-				<content src="''' + chapter.htmlfile + '''" />
-			</navPoint>''')
+		<navPoint id="''' + chapter.id + '''" playOrder="''' + str(n) + '''">
+			<navLabel><text>''' + chapter.title + '''</text></navLabel>
+			<content src="''' + chapter.htmlfile + '''" />
+		</navPoint>''')
 				n += 1
 
 			f.write('''
-		</navMap>
-	</ncx>''')
+	</navMap>
+</ncx>''')
 
 			f.close()
 
@@ -146,24 +147,25 @@ class EPub:
 
 				# write HTML header
 				f.write('''<?xml version="1.0" encoding="UTF-8"?>
-	<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 
-	<html xmlns="http://www.w3.org/1999/xhtml">
-	<head>
-		<title>''' + self.title + '''</title>''')
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>''' + self.title + '''</title>''')
 				if self.css:
-					f.write('<link rel="stylesheet" type="text/css" href="' + os.path.basename(self.css) + '" />')
+					f.write('\n\t<link rel="stylesheet" type="text/css" href="' + os.path.basename(self.css) + '" />')
 				f.write('''
-	</head>
-	<body>''')
+	<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" /> 
+</head>
+<body>''')
 
 				# write the Markdowned text
 				f.write(markdown2.markdown(sourcetext).encode('utf-8'))
 
 				# write HTML footer
 				f.write('''
-	</body>
-	</html>''')
+</body>
+</html>''')
 
 				f.close()
 
@@ -221,7 +223,7 @@ def process_book(filename):
 			elif keyword == 'Language':
 				epub.lang = value
 			elif keyword == 'URL':
-				epub.url = value
+				epub.url = ''.join([values[1].strip(), ':', values[2].strip()])
 			elif keyword == 'Image' or keyword == 'Images':
 				images = value.split(',')
 				# split list
