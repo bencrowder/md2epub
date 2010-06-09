@@ -1,0 +1,23 @@
+# Sample book file for md2epub
+
+Title: My Sample Book
+Author: John Doe
+Language: en-US
+URL: http://bencrowder.net/books/my-sample-book/
+CSS: content/style.css
+
+# Chapters
+Foreword | content/foreword.text
+Chapter 1 | content/chapter_1.text
+Chapter 2 | content/chapter_2.text
+Chapter 3 | content/chapter_3.text
+Chapter 4 | content/chapter_4.text
+Chapter 5 | content/chapter_5.text
+Chapter 6 | content/chapter_6.text
+Chapter 7 | content/chapter_7.text
+Chapter 8 | content/chapter_8.text
+
+# Images to be included
+Images: images/illustration1.jpg, images/illustration2.jpg, images/illustration3.jpg
+Image: images/illustration4.jpg
+Image: images/illustration5.jpg
