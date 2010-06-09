@@ -243,7 +243,8 @@ def process_book(filename):
 			chapter.htmlfile = os.path.splitext(basename)[0] + '.html'
 
 			# for the ID, lowercase it all, strip punctuation, and replace spaces with underscores
-		 	chapter.id = chapter.title.lower().translate(string.maketrans('',''), string.punctuation).replace(' ', '_')
+			chapter.id = re.sub(r'[^a-zA-Z0-9]', r'', chapter.title.lower()).replace(' ', '_')
+		 	# chapter.id = chapter.id.translate(string.maketrans('',''), string.punctuation).replace(' ', '_')
 
 			epub.content.append(chapter)
 		else:
