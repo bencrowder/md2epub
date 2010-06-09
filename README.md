@@ -15,5 +15,6 @@ md2epub is a Python script for making ePubs out of Markdown files.
 ### Notes
 
 * The book file can be called anything and doesn't have to end in ".book".
+* <code>sample.book</code> has the Markdown files and images in separate subdirectories, but that's optional.
 * There are several Dublin Core features I haven't included. Someday...
 * Hierarchical navmaps aren't supported yet.
