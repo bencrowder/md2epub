@@ -11,8 +11,8 @@ The ePub-generation code is based off Matt Turner's [GetBook.py](http://staff.wa
 ### Usage
 
 0. Install python-markdown2 if you haven't already done so.
-1. Create a book file. See sample.book for an example. (It's pretty simple.)
-2. Run <code>md2epub.py [myfile.book]</code>.
+1. Create a book file. See <code>sample.book</code> for an example. (It's pretty simple.)
+2. Run <code>md2epub.py myfile.book</code> and voila, instant ePub.
 
 ### Notes
 
