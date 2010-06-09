@@ -2,6 +2,8 @@
 
 md2epub is a Python script for making ePubs out of Markdown files.
 
+The ePub-generation code is based off Matt Turner's [GetBook.py](http://staff.washington.edu/mdturner).
+
 ### Dependencies
 
 * [python-markdown2](http://code.google.com/p/python-markdown2/)
