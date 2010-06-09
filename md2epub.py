@@ -55,16 +55,16 @@ class EPub:
 			f.write('''<?xml version="1.0"?>
 	<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
 		<rootfiles>
-			<rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml" />
+			<rootfile full-path="OEBPS/metadata.opf" media-type="application/oebps-package+xml" />
 		</rootfiles>
 	</container>''')
 			f.close()
 			os.chdir('..')
 
-			# make OEBPS/content.opf
+			# make OEBPS/metadata.opf
 			os.mkdir('OEBPS')
 			os.chdir('OEBPS')
-			f = open('content.opf','w')
+			f = open('metadata.opf','w')
 			f.write('''<?xml version="1.0"?>
 	<package version="2.0" xmlns="http://www.idpf.org/2007/opf"
 			 unique-identifier="bookid">
