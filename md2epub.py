@@ -6,7 +6,7 @@
 # http://bencrowder.net/
 #
 # Based off Matt Turner's GetBook.py
-# http://staff.washington.edu/mdturner
+# http://staff.washington.edu/mdturner/personal.htm
 #
 
 import urllib, re, os, zipfile, glob, shutil, sys, markdown2, string, datetime
