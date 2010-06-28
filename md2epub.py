@@ -72,7 +72,11 @@ class EPub:
 		<dc:title>''' + self.title + '''</dc:title>
 		<dc:creator opf:role="aut">''' + self.author + '''</dc:creator>
 		<dc:language>''' + self.lang + '''</dc:language>
-		<dc:identifier id="bookid">''' + self.url + '''</dc:identifier>
+		<dc:identifier id="bookid">''' + self.url + '''</dc:identifier>''')
+			if self.cover:
+				f.write('\t\t<meta name="cover" content="book-cover" />')
+
+			f.write('''
 	</metadata>
 	<manifest>
 		<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
@@ -80,6 +84,13 @@ class EPub:
 
 			if self.css:
 				f.write('\t\t<item id="style" href="' + os.path.basename(self.css) + '" media-type="application/css" />')
+
+			if self.cover:
+				imagefile = os.path.basename(self.cover)
+				ext = os.path.splitext(imagefile)[1][1:]	# get the extension
+				if ext == 'jpg':
+					ext = 'jpeg'
+				f.write('\t\t<item id="book-cover" href="' + imagefile + '" media-type="image/' + ext + '" />')
 
 			for chapter in self.content:
 				f.write('''
@@ -231,6 +242,8 @@ def process_book(filename):
 					epub.images.append(image.strip())
 			elif keyword == 'CSS':
 				epub.css = value
+			elif keyword == 'Cover':
+				epub.cover = value
 		elif '|' in line:				# contents
 			values = line.split('|')
 			title = values[0].strip()
