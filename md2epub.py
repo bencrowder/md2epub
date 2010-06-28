@@ -189,6 +189,11 @@ class EPub:
 				f.write(csstext)
 				f.close()
 
+			# copy cover art into the directory
+			if self.cover:
+				dest = os.path.basename(self.cover)
+				shutil.copyfile('../../' + self.cover, dest)
+
 			# copy images into the directory
 			for image in self.images:
 				dest = os.path.basename(image)
