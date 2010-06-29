@@ -17,6 +17,7 @@ class Chapter:
 	filename = ''
 	htmlfile = ''
 	id = ''
+	children = []
 
 
 class EPub:
@@ -265,9 +266,21 @@ def process_book(filename):
 
 			# for the ID, lowercase it all, strip punctuation, and replace spaces with underscores
 			chapter.id = re.sub(r'[^a-zA-Z0-9]', r'', chapter.title.lower()).replace(' ', '_')
-		 	# chapter.id = chapter.id.translate(string.maketrans('',''), string.punctuation).replace(' ', '_')
 
-			epub.content.append(chapter)
+			# if this is a child chapter, add to parent; otherwise add to root
+			if line[0] == "\t":
+				if lastchapter: # make sure we have something to add to
+					print 'Appending %s to %s' % (chapter.title, lastchapter.title)
+					lastchapter.children.append(chapter)
+				else:
+					print 'Appending %s to root (oops)' % (chapter.title)
+					epub.content.append(chapter)			# plan B
+			else:
+				print 'Appending %s to root' % (chapter.title)
+				epub.content.append(chapter)
+
+				# for hierarchies, keep a reference to the last chapter
+				lastchapter = chapter
 		else:
 			if line[0] == '#' or not line.strip():
 				# ignore comments and blank lines
