@@ -28,6 +28,7 @@ class EPub:
 	bookid = ''				# unique identifier
 	url = ''				# URL for this book
 	css = ''				# CSS file
+	cover = ''				# book cover art
 	images = []				# list of images to be included
 	content = []			# list of Chapters
 
