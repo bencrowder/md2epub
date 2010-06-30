@@ -18,5 +18,5 @@ The ePub-generation code is based on Matt Turner's [GetBook.py](http://staff.was
 
 * The book file can be called anything and doesn't have to end in ".book".
 * <code>sample.book</code> has the Markdown files and images in separate subdirectories, but that's optional.
+* <code>sample2.book</code> shows how to do a hierarchical table of contents
 * There are several Dublin Core features I haven't included. Someday...
-* Hierarchical navmaps aren't supported yet.
