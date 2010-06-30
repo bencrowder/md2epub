@@ -35,7 +35,9 @@ class EPub:
 	cover = ''				# book cover art
 	images = []				# list of images to be included
 	children = []			# list of Chapters
+
 	navpointcount = 1		# used for navpoint counts
+	chapterids = []
 
 	def cleanup(self):
 		os.rmdir(self.path)
@@ -44,10 +46,20 @@ class EPub:
 	# takes a list of chapters and writes the <item> tags for them and their children
 	def write_items(self, children, f, pre):
 		for chapter in children:
+			# For child chapters, prepend the parent id to make this one unique
 			if pre:
 				id = pre + '_' + chapter.id
 			else:
 				id = chapter.id
+
+			# Make sure we don't put duplicates in
+			if id not in self.chapterids:
+				self.chapterids.append(id)
+			else:
+				print 'Duplicate ID: %s' % (id)
+				sys.exit(-1)
+
+			# Write it out
 			f.write('''
 		<item id="''' + id + '''" href="''' + chapter.htmlfile + '''" media-type="application/xhtml+xml" />''')
 			if chapter.children:
@@ -68,15 +80,21 @@ class EPub:
 
 
 	# takes a list of chapters and writes them and their children to a navmap
-	def write_chapter_navpoints(self, children, f):
+	def write_chapter_navpoints(self, children, f, pre):
 		for chapter in children:
+			# For child chapters, prepend the parent id to make this one unique
+			if pre:
+				id = pre + '_' + chapter.id
+			else:
+				id = chapter.id
+
 			f.write('''
-		<navPoint id="''' + chapter.id + '''" playOrder="''' + str(self.navpointcount) + '''">
+		<navPoint id="''' + id + '''" playOrder="''' + str(self.navpointcount) + '''">
 			<navLabel><text>''' + chapter.title + '''</text></navLabel>
 			<content src="''' + chapter.htmlfile + '''" />''')
 			self.navpointcount += 1
 			if chapter.children:
-				self.write_chapter_navpoints(chapter.children, f)
+				self.write_chapter_navpoints(chapter.children, f, id)
 			f.write('''
 		</navPoint>''')
 
@@ -220,7 +238,7 @@ class EPub:
 	</docTitle>
 	<navMap>''')
 
-			self.write_chapter_navpoints(self.children, f)
+			self.write_chapter_navpoints(self.children, f, '')
 
 			f.write('''
 	</navMap>
@@ -321,6 +339,11 @@ def process_book(filename):
 
 			# for the ID, lowercase it all, strip punctuation, and replace spaces with underscores
 			chapter.id = re.sub(r'[^a-zA-Z0-9]', r'', chapter.title.lower()).replace(' ', '_')
+			
+			# if there's no ID left (because the chapter title is all Unicode, for example),
+			# use the basename of the file instead
+			if not chapter.id:
+				chapter.id = os.path.splitext(basename)[0]
 
 			depth = line.rfind("\t") + 1
 			add_chapter(chapter, epub.children, depth)
