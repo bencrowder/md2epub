@@ -42,21 +42,29 @@ class EPub:
 
 
 	# takes a list of chapters and writes the <item> tags for them and their children
-	def write_items(self, children, f):
+	def write_items(self, children, f, pre):
 		for chapter in children:
+			if pre:
+				id = pre + '_' + chapter.id
+			else:
+				id = chapter.id
 			f.write('''
-		<item id="''' + chapter.id + '''" href="''' + chapter.htmlfile + '''" media-type="application/xhtml+xml" />''')
+		<item id="''' + id + '''" href="''' + chapter.htmlfile + '''" media-type="application/xhtml+xml" />''')
 			if chapter.children:
-				self.write_items(chapter.children, f)
+				self.write_items(chapter.children, f, id)
 
 
 	# takes a list of chapters and writes the <itemref> tags for them and their children
-	def write_itemrefs(self, children, f):
+	def write_itemrefs(self, children, f, pre):
 		for chapter in children:
+			if pre:
+				id = pre + '_' + chapter.id
+			else:
+				id = chapter.id
 			f.write('''
-		<itemref idref="''' + chapter.id + '''"/>''')
+		<itemref idref="''' + id + '''"/>''')
 			if chapter.children:
-				self.write_itemrefs(chapter.children, f)
+				self.write_itemrefs(chapter.children, f, id)
 
 
 	# takes a list of chapters and writes them and their children to a navmap
@@ -173,7 +181,7 @@ class EPub:
 				f.write('\t\t<item id="book-cover" href="' + imagefile + '" media-type="image/' + ext + '" />')
 
 			# write the <item> tags
-			self.write_items(self.children, f)
+			self.write_items(self.children, f, '')
 
 			for image in self.images:
 				imagefile = os.path.basename(image)
@@ -188,7 +196,7 @@ class EPub:
 	<spine toc="ncx">''')
 
 			# write the <itemref> tags
-			self.write_itemrefs(self.children, f)
+			self.write_itemrefs(self.children, f, '')
 
 			f.write('''
 	</spine>
@@ -217,6 +225,7 @@ class EPub:
 			f.write('''
 	</navMap>
 </ncx>''')
+			f.close()
 
 			# convert the texts to Markdown and save in the directory
 			self.convert_chapters_to_markdown(self.children)
