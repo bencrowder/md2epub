@@ -19,6 +19,9 @@ class Chapter:
 	id = ''
 	children = []
 
+	def __init__(self):
+		self.children = []
+
 
 class EPub:
 	title = ''
@@ -31,11 +34,86 @@ class EPub:
 	css = ''				# CSS file
 	cover = ''				# book cover art
 	images = []				# list of images to be included
-	content = []			# list of Chapters
+	children = []			# list of Chapters
+	navpointcount = 1		# used for navpoint counts
 
 	def cleanup(self):
 		os.rmdir(self.path)
 
+
+	# takes a list of chapters and writes the <item> tags for them and their children
+	def write_items(self, children, f):
+		for chapter in children:
+			f.write('''
+		<item id="''' + chapter.id + '''" href="''' + chapter.htmlfile + '''" media-type="application/xhtml+xml" />''')
+			if chapter.children:
+				self.write_items(chapter.children, f)
+
+
+	# takes a list of chapters and writes the <itemref> tags for them and their children
+	def write_itemrefs(self, children, f):
+		for chapter in children:
+			f.write('''
+		<itemref idref="''' + chapter.id + '''"/>''')
+			if chapter.children:
+				self.write_itemrefs(chapter.children, f)
+
+
+	# takes a list of chapters and writes them and their children to a navmap
+	def write_chapter_navpoints(self, children, f):
+		for chapter in children:
+			f.write('''
+		<navPoint id="''' + chapter.id + '''" playOrder="''' + str(self.navpointcount) + '''">
+			<navLabel><text>''' + chapter.title + '''</text></navLabel>
+			<content src="''' + chapter.htmlfile + '''" />''')
+			self.navpointcount += 1
+			if chapter.children:
+				self.write_chapter_navpoints(chapter.children, f)
+			f.write('''
+		</navPoint>''')
+
+
+	# takes a list of chapters and converts them and their children to Markdown
+	def convert_chapters_to_markdown(self, children):
+		for chapter in children:
+			try:
+				input = open('../../' + chapter.filename, 'r')
+				f = open(chapter.htmlfile, 'w')
+			except:
+				print 'Error reading file from table of contents.'
+				sys.exit(-1)
+			sourcetext = input.read()
+			input.close()
+
+			# write HTML header
+			f.write('''<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>''' + self.title + '''</title>''')
+			if self.css:
+				f.write('\n\t<link rel="stylesheet" type="text/css" href="' + os.path.basename(self.css) + '" />')
+			f.write('''
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" /> 
+</head>
+<body>''')
+
+			# write the Markdowned text
+			f.write(markdown2.markdown(sourcetext).encode('utf-8'))
+
+			# write HTML footer
+			f.write('''
+</body>
+</html>''')
+
+			f.close()
+
+			if chapter.children:
+				self.convert_chapters_to_markdown(chapter.children)
+
+
+	# the main worker
 	def save(self):
 		# get current working directory
 		cwd = os.getcwd()
@@ -94,9 +172,8 @@ class EPub:
 					ext = 'jpeg'
 				f.write('\t\t<item id="book-cover" href="' + imagefile + '" media-type="image/' + ext + '" />')
 
-			for chapter in self.content:
-				f.write('''
-		<item id="''' + chapter.id + '''" href="''' + chapter.htmlfile + '''" media-type="application/xhtml+xml" />''')
+			# write the <item> tags
+			self.write_items(self.children, f)
 
 			for image in self.images:
 				imagefile = os.path.basename(image)
@@ -110,9 +187,8 @@ class EPub:
 	</manifest>
 	<spine toc="ncx">''')
 
-			for chapter in self.content:
-				f.write('''
-		<itemref idref="''' + chapter.id + '''"/>''')
+			# write the <itemref> tags
+			self.write_itemrefs(self.children, f)
 
 			f.write('''
 	</spine>
@@ -136,51 +212,14 @@ class EPub:
 	</docTitle>
 	<navMap>''')
 
-			n = 1
-			for chapter in self.content:
-				f.write('''
-		<navPoint id="''' + chapter.id + '''" playOrder="''' + str(n) + '''">
-			<navLabel><text>''' + chapter.title + '''</text></navLabel>
-			<content src="''' + chapter.htmlfile + '''" />
-		</navPoint>''')
-				n += 1
+			self.write_chapter_navpoints(self.children, f)
 
 			f.write('''
 	</navMap>
 </ncx>''')
 
-			f.close()
-
 			# convert the texts to Markdown and save in the directory
-			for chapter in self.content:
-				input = open('../../' + chapter.filename, 'r')
-				f = open(chapter.htmlfile, 'w')
-				sourcetext = input.read()
-				input.close()
-
-				# write HTML header
-				f.write('''<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-	<title>''' + self.title + '''</title>''')
-				if self.css:
-					f.write('\n\t<link rel="stylesheet" type="text/css" href="' + os.path.basename(self.css) + '" />')
-				f.write('''
-	<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" /> 
-</head>
-<body>''')
-
-				# write the Markdowned text
-				f.write(markdown2.markdown(sourcetext).encode('utf-8'))
-
-				# write HTML footer
-				f.write('''
-</body>
-</html>''')
-
-				f.close()
+			self.convert_chapters_to_markdown(self.children)
 
 			# if there's a CSS file, copy it in
 			if self.css:
@@ -220,6 +259,13 @@ class EPub:
 			shutil.rmtree(self.path)
 
 
+def add_chapter(chapter, children, depth):
+	if depth > 0:
+		add_chapter(chapter, children[-1].children, depth - 1)
+	else:
+		children.append(chapter)
+
+
 def process_book(filename):
 	epub = EPub()
 
@@ -231,7 +277,7 @@ def process_book(filename):
 	fh = open(filename, 'r')
 	for line in fh.readlines():
 		if ':' in line:					# keywords
-			values = line.split(':')
+			values = line.split(':', 1)
 			keyword = values[0].strip()
 			value = values[1].strip()
 			if keyword == 'Title':
@@ -241,7 +287,7 @@ def process_book(filename):
 			elif keyword == 'Language':
 				epub.lang = value
 			elif keyword == 'URL':
-				epub.url = ''.join([values[1].strip(), ':', values[2].strip()])
+				epub.url = value
 			elif keyword == 'Image' or keyword == 'Images':
 				images = value.split(',')
 				# split list
@@ -267,26 +313,16 @@ def process_book(filename):
 			# for the ID, lowercase it all, strip punctuation, and replace spaces with underscores
 			chapter.id = re.sub(r'[^a-zA-Z0-9]', r'', chapter.title.lower()).replace(' ', '_')
 
-			# if this is a child chapter, add to parent; otherwise add to root
-			if line[0] == "\t":
-				if lastchapter: # make sure we have something to add to
-					print 'Appending %s to %s' % (chapter.title, lastchapter.title)
-					lastchapter.children.append(chapter)
-				else:
-					print 'Appending %s to root (oops)' % (chapter.title)
-					epub.content.append(chapter)			# plan B
-			else:
-				print 'Appending %s to root' % (chapter.title)
-				epub.content.append(chapter)
-
-				# for hierarchies, keep a reference to the last chapter
-				lastchapter = chapter
+			depth = line.rfind("\t") + 1
+			add_chapter(chapter, epub.children, depth)
 		else:
 			if line[0] == '#' or not line.strip():
 				# ignore comments and blank lines
 				pass
 			else:
-				print 'Error!'
+				print "Error on the following line:\n"
+				print line
+				sys.exit(-1)
 
 	fh.close()
 
