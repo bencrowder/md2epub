@@ -38,6 +38,7 @@ class EPub:
 
 	navpointcount = 1		# used for navpoint counts
 	chapterids = []
+	maxdepth = 1
 
 	def cleanup(self):
 		os.rmdir(self.path)
@@ -229,7 +230,7 @@ class EPub:
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
 	<head>
 		<meta name="dtb:uid" content="''' + self.url + '''" />
-		<meta name="dtb:depth" content="1" />
+		<meta name="dtb:depth" content="''' + str(self.maxdepth) + '''" />
 		<meta name="dtb:totalPageCount" content="0" />
 		<meta name="dtb:maxPageNumber" content="0" />
 	</head>
@@ -287,6 +288,7 @@ class EPub:
 
 
 def add_chapter(chapter, children, depth):
+	# Go recursive
 	if depth > 0:
 		add_chapter(chapter, children[-1].children, depth - 1)
 	else:
@@ -300,6 +302,7 @@ def process_book(filename):
 	epub.basename = filename.split('.')[0]
 	epub.path = '%s_%s-%s-%s_%s-%s-%s' % (epub.basename, now.year, now.month, now.day, now.hour, now.minute, now.second)
 	epub.url = 'http://localhost/' + epub.path		# dummy URL, replaced in control file
+	epub.maxdepth = 1
 
 	fh = open(filename, 'r')
 	for line in fh.readlines():
@@ -345,7 +348,14 @@ def process_book(filename):
 			if not chapter.id:
 				chapter.id = os.path.splitext(basename)[0]
 
+			# see how deep in the tree we are
 			depth = line.rfind("\t") + 1
+
+			# keep track of maximum depth
+			if depth > (epub.maxdepth - 1):
+				epub.maxdepth = depth + 1
+
+			# add the current chapter
 			add_chapter(chapter, epub.children, depth)
 		else:
 			if line[0] == '#' or not line.strip():
