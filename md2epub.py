@@ -306,7 +306,9 @@ def process_book(filename):
 
 	fh = open(filename, 'r')
 	for line in fh.readlines():
-		if ':' in line:					# keywords
+		if line[0] == '#' or not line.strip():
+			pass						# ignore comments and blank lines
+		elif ':' in line:				# keywords
 			values = line.split(':', 1)
 			keyword = values[0].strip()
 			value = values[1].strip()
@@ -358,13 +360,9 @@ def process_book(filename):
 			# add the current chapter
 			add_chapter(chapter, epub.children, depth)
 		else:
-			if line[0] == '#' or not line.strip():
-				# ignore comments and blank lines
-				pass
-			else:
-				print "Error on the following line:\n"
-				print line
-				sys.exit(-1)
+			print "Error on the following line:\n"
+			print line
+			sys.exit(-1)
 
 	fh.close()
 
