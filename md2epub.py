@@ -107,7 +107,7 @@ class EPub:
 				input = open('../../' + chapter.filename, 'r')
 				f = open(chapter.htmlfile, 'w')
 			except:
-				print 'Error reading file from table of contents.'
+				print 'Error reading file "%s" from table of contents.' % chapter.filename
 				sys.exit(-1)
 			sourcetext = input.read()
 			input.close()
