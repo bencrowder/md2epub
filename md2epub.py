@@ -251,6 +251,9 @@ class EPub:
 
 			# if there's a CSS file, copy it in
 			if self.css:
+				if not os.path.exists('../../' + self.css):
+					print "CSS file doesn't exist."
+					sys.exit(-1)
 				css = open('../../' + self.css, 'r')
 				csstext = css.read()
 				css.close()
@@ -260,6 +263,9 @@ class EPub:
 
 			# copy cover art into the directory
 			if self.cover:
+				if not os.path.exists('../../' + self.cover):
+					print "Cover art file doesn't exist."
+					sys.exit(-1)
 				dest = os.path.basename(self.cover)
 				shutil.copyfile('../../' + self.cover, dest)
 
