@@ -33,6 +33,7 @@ class EPub:
 	url = ''				# URL for this book
 	css = ''				# CSS file
 	cover = ''				# book cover art
+	toc = ''				# TOC (relative to the rest of the files)
 	images = []				# list of images to be included
 	children = []			# list of Chapters
 
@@ -181,7 +182,7 @@ class EPub:
 		<dc:language>''' + self.lang + '''</dc:language>
 		<dc:identifier id="bookid">''' + self.url + '''</dc:identifier>''')
 			if self.cover:
-				f.write('\t\t<meta name="cover" content="book-cover" />')
+				f.write('\n\t\t<meta name="cover" content="book-cover" />')
 
 			f.write('''
 	</metadata>
@@ -218,7 +219,15 @@ class EPub:
 			self.write_itemrefs(self.children, f, '')
 
 			f.write('''
-	</spine>
+	</spine>''')
+
+			if self.toc:
+				f.write('''
+	<guide>
+		<reference type="toc" title="Table of Contents" href="''' + self.toc + '''.html" />
+	</guide>''')
+
+			f.write('''
 </package>''')
 
 			f.close()
@@ -326,6 +335,8 @@ def process_book(filename):
 				epub.lang = value
 			elif keyword == 'URL':
 				epub.url = value
+			elif keyword == 'TOC':
+				epub.toc = value
 			elif keyword == 'Image' or keyword == 'Images':
 				images = value.split(',')
 				# split list

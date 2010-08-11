@@ -1,5 +1,5 @@
 # Sample book file for md2epub
-# 9 Jun 2010
+# 11 Aug 2010
 
 Title: My Sample Book
 Author: John Doe
@@ -7,6 +7,10 @@ Language: en-US
 URL: http://bencrowder.net/books/my-sample-book/
 CSS: content/style.css
 Cover: content/cover.jpg
+TOC: toc								# don't put the "content/" in front and leave off .text
+
+# Table of Contents
+Table of Contents | content/toc.text
 
 # Chapters
 Foreword | content/foreword.text
