@@ -470,6 +470,7 @@ def curl_quotes(str):
 		&[mn]dash;  |   # named dash entities
 		\xe2\x80\x94  | # encoded em-dash
 		_	        |   # underscore (for italic)
+		>	        |   # HTML tag
 		%s          |   # or decimal entities
 		&\#x201[34];    # or hex
 		)
@@ -500,6 +501,7 @@ def curl_quotes(str):
 		&[mn]dash;  |   # named dash entities
 		\xe2\x80\x94  | # encoded em-dash
 		_	        |   # underscore (for italic)
+		>	        |   # HTML tag
 		%s          |   # or decimal entities
 		&\#x201[34];    # or hex
 		)
