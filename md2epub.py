@@ -8,9 +8,48 @@
 # Based off Matt Turner's GetBook.py
 # http://staff.washington.edu/mdturner/personal.htm
 #
+# SmartyPants license:
+#
+#	Copyright (c) 2003 John Gruber  
+#	(http://daringfireball.net/)  
+#	All rights reserved.  
+#
+#	See below ("Redistribution...")
+#
+# smartypants.py license:
+#
+#	smartypants.py is a derivative work of SmartyPants.
+# 
+#	Redistribution and use in source and binary forms, with or without
+#	modification, are permitted provided that the following conditions are
+#	met:
+#
+#	*   Redistributions of source code must retain the above copyright
+#			notice, this list of conditions and the following disclaimer.
+# 
+#	*   Redistributions in binary form must reproduce the above copyright
+#			notice, this list of conditions and the following disclaimer in
+#			the documentation and/or other materials provided with the
+#			distribution.
+# 
+#	*   Neither the name "SmartyPants" nor the names of its contributors
+#			may be used to endorse or promote products derived from this
+#			software without specific prior written permission.
+# 
+#	This software is provided by the copyright holders and contributors "as
+#	is" and any express or implied warranties, including, but not limited
+#	to, the implied warranties of merchantability and fitness for a
+#	particular purpose are disclaimed. In no event shall the copyright
+#	owner or contributors be liable for any direct, indirect, incidental,
+#	special, exemplary, or consequential damages (including, but not
+#	limited to, procurement of substitute goods or services; loss of use,
+#	data, or profits; or business interruption) however caused and on any
+#	theory of liability, whether in contract, strict liability, or tort
+#	(including negligence or otherwise) arising in any way out of the use
+#	of this software, even if advised of the possibility of such damage.
+
 
 import urllib, re, os, zipfile, glob, shutil, sys, markdown2, string, datetime
-
 
 class Chapter:
 	title = ''
@@ -128,7 +167,9 @@ class EPub:
 <body>''')
 
 			# write the Markdowned text
-			f.write(markdown2.markdown(sourcetext).encode('utf-8'))
+			curled = curl_quotes(sourcetext)
+			htmltext = markdown2.markdown(curled)
+			f.write(htmltext.encode('utf-8'))
 
 			# write HTML footer
 			f.write('''
@@ -387,6 +428,104 @@ def process_book(filename):
 	epub.bookid = '[' + epub.title + '|' + epub.author + ']'
 
 	return epub
+
+
+##### Convert straight quotes to curly ones
+# Code expanded from educateQuotes() in Chad Miller's smartypants.py
+#	(http://web.chad.org/projects/smartypants.py/smartypants.py-1.5_1.6)
+# which in turn is a port of John Gruber's SmartyPants plugin
+
+def curl_quotes(str):
+	oldstr = str
+	punct_class = r"""[!"#\$\%'()*+,-.\/:;<=>?\@\[\\\]\^_`{|}~]"""
+
+	# Special case for 'Twas and 'Tis
+	str = re.sub(r"""'Twas""", r"""&#8217;Twas""", str)
+	str = re.sub(r"""'twas""", r"""&#8217;twas""", str)
+	str = re.sub(r"""'Tis""", r"""&#8217;Tis""", str)
+	str = re.sub(r"""'tis""", r"""&#8217;tis""", str)
+
+	# Special case if the very first character is a quote followed by
+	# punctuation at a non-word-break. Close the quotes by brute force:
+	str = re.sub(r"""^'(?=%s\\B)""" % (punct_class,), r"""&#8217;""", str)
+	str = re.sub(r"""^"(?=%s\\B)""" % (punct_class,), r"""&#8221;""", str)
+
+	# Special case for double sets of quotes, e.g.:
+	#   <p>He said, "'Quoted' words in a larger quote."</p>
+	str = re.sub(r""""'(?=\w)""", """&#8220;&#8216;""", str)
+	str = re.sub(r"""'"(?=\w)""", """&#8216;&#8220;""", str)
+
+	# Special case for decade abbreviations (the '80s):
+	str = re.sub(r"""\b'(?=\d{2}s)""", r"""&#8217;""", str)
+
+	close_class = r"""[^\ \t\r\n\[\{\(\-]"""
+	dec_dashes = r"""&#8211;|&#8212;"""
+
+	# Get most opening single quotes:
+	opening_single_quotes_regex = re.compile(r"""
+		(
+		\s          |   # a whitespace char, or
+		&nbsp;      |   # a non-breaking space entity, or
+		--          |   # dashes, or
+		&[mn]dash;  |   # named dash entities
+		\xe2\x80\x94  | # encoded em-dash
+		_	        |   # underscore (for italic)
+		%s          |   # or decimal entities
+		&\#x201[34];    # or hex
+		)
+		'                 # the quote
+		(?=\w)            # followed by a word character
+		""" % (dec_dashes,), re.VERBOSE)
+	str = opening_single_quotes_regex.sub(r"""\1&#8216;""", str)
+
+	closing_single_quotes_regex = re.compile(r"""
+		(%s)
+		'
+		(?!\s | s\b | \d)
+		""" % (close_class,), re.VERBOSE)
+	str = closing_single_quotes_regex.sub(r"""\1&#8217;""", str)
+
+	# hand's
+	str = re.sub(r"(.)'(.)", r"\1&#8217;\2", str)
+
+	# Any remaining single quotes should be opening ones:
+	str = re.sub(r"""'""", r"""&#8216;""", str)
+
+	# Get most opening double quotes:
+	opening_double_quotes_regex = re.compile(r"""
+		(
+		\s          |   # a whitespace char, or
+		&nbsp;      |   # a non-breaking space entity, or
+		--			|	# dashes, or
+		&[mn]dash;  |   # named dash entities
+		\xe2\x80\x94  | # encoded em-dash
+		_	        |   # underscore (for italic)
+		%s          |   # or decimal entities
+		&\#x201[34];    # or hex
+		)
+		"                 # the quote
+		(?=\w)            # followed by a word character
+		""" % (dec_dashes,), re.VERBOSE)
+	str = opening_double_quotes_regex.sub(r"""\1&#8220;""", str)
+
+	# Double closing quotes:
+	closing_double_quotes_regex = re.compile(r"""
+		#(%s)?   # character that indicates the quote should be closing
+		"
+		(?=\s)
+		""" % (close_class,), re.VERBOSE)
+	str = closing_double_quotes_regex.sub(r"""&#8221;""", str)
+
+	closing_double_quotes_regex = re.compile(r"""
+		(%s)   # character that indicates the quote should be closing
+		"
+		""" % (close_class,), re.VERBOSE)
+	str = closing_double_quotes_regex.sub(r"""\1&#8221;""", str)
+
+	# Any remaining quotes should be opening ones.
+	str = re.sub(r'"', r"""&#8220;""", str)
+
+	return str
 
 
 ##### Main
