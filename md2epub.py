@@ -338,6 +338,8 @@ class EPub:
 			os.chdir('..')
 			shutil.rmtree(self.path)
 		except:
+			print "Unexpected error: ", sys.exc_info()[0]
+
 			# if something went wrong, remove the temp directory
 			os.chdir(cwd)
 			shutil.rmtree(self.path)
