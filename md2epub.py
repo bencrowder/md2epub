@@ -441,6 +441,9 @@ def curl_quotes(str):
 	oldstr = str
 	punct_class = r"""[!"#\$\%'()*+,-.\/:;<=>?\@\[\\\]\^_`{|}~]"""
 
+	# Take care of quotes in html tags (<div class="poetry">, etc.)
+	str = re.sub(r"""<(.*?)="(.*?)">""", r"""<\1=~~~\2~~~>""", str)
+
 	# Special case for 'Twas and 'Tis
 	str = re.sub(r"""'Twas""", r"""&#8217;Twas""", str)
 	str = re.sub(r"""'twas""", r"""&#8217;twas""", str)
@@ -528,6 +531,9 @@ def curl_quotes(str):
 
 	# Any remaining quotes should be opening ones.
 	str = re.sub(r'"', r"""&#8220;""", str)
+
+	# Take care of quotes in html tags (<div class="poetry">, etc.)
+	str = re.sub(r"""~~~""", r'"', str)
 
 	return str
 
