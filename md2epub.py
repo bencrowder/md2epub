@@ -366,7 +366,7 @@ def process_book(filename):
 	for line in fh.readlines():
 		if line[0] == '#' or not line.strip():
 			pass						# ignore comments and blank lines
-		elif ':' in line:				# keywords
+		elif ':' in line and '|' not in line:			# keywords
 			values = line.split(':', 1)
 			keyword = values[0].strip()
 			value = values[1].strip()
