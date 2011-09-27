@@ -7,49 +7,10 @@
 #
 # Based off Matt Turner's GetBook.py
 # http://staff.washington.edu/mdturner/personal.htm
-#
-# SmartyPants license:
-#
-#	Copyright (c) 2003 John Gruber  
-#	(http://daringfireball.net/)  
-#	All rights reserved.  
-#
-#	See below ("Redistribution...")
-#
-# smartypants.py license:
-#
-#	smartypants.py is a derivative work of SmartyPants.
-# 
-#	Redistribution and use in source and binary forms, with or without
-#	modification, are permitted provided that the following conditions are
-#	met:
-#
-#	*   Redistributions of source code must retain the above copyright
-#			notice, this list of conditions and the following disclaimer.
-# 
-#	*   Redistributions in binary form must reproduce the above copyright
-#			notice, this list of conditions and the following disclaimer in
-#			the documentation and/or other materials provided with the
-#			distribution.
-# 
-#	*   Neither the name "SmartyPants" nor the names of its contributors
-#			may be used to endorse or promote products derived from this
-#			software without specific prior written permission.
-# 
-#	This software is provided by the copyright holders and contributors "as
-#	is" and any express or implied warranties, including, but not limited
-#	to, the implied warranties of merchantability and fitness for a
-#	particular purpose are disclaimed. In no event shall the copyright
-#	owner or contributors be liable for any direct, indirect, incidental,
-#	special, exemplary, or consequential damages (including, but not
-#	limited to, procurement of substitute goods or services; loss of use,
-#	data, or profits; or business interruption) however caused and on any
-#	theory of liability, whether in contract, strict liability, or tort
-#	(including negligence or otherwise) arising in any way out of the use
-#	of this software, even if advised of the possibility of such damage.
 
 
 import urllib, re, os, zipfile, glob, shutil, sys, markdown2, string, datetime
+from smartypants import smartyPants
 
 class Chapter:
 	title = ''
@@ -89,9 +50,9 @@ class EPub:
 		for chapter in children:
 			# For child chapters, prepend the parent id to make this one unique
 			if pre:
-				id = pre + '_' + chapter.id
+				id = '_' + pre + '_' + chapter.id
 			else:
-				id = chapter.id
+				id = '_' + chapter.id
 
 			# Make sure we don't put duplicates in
 			if id not in self.chapterids:
@@ -111,9 +72,9 @@ class EPub:
 	def write_itemrefs(self, children, f, pre):
 		for chapter in children:
 			if pre:
-				id = pre + '_' + chapter.id
+				id = '_' + pre + '_' + chapter.id
 			else:
-				id = chapter.id
+				id = '_' + chapter.id
 			f.write('''
 		<itemref idref="''' + id + '''"/>''')
 			if chapter.children:
@@ -125,9 +86,9 @@ class EPub:
 		for chapter in children:
 			# For child chapters, prepend the parent id to make this one unique
 			if pre:
-				id = pre + '_' + chapter.id
+				id = '_' + pre + '_' + chapter.id
 			else:
-				id = chapter.id
+				id = '_' + chapter.id
 
 			f.write('''
 		<navPoint id="''' + id + '''" playOrder="''' + str(self.navpointcount) + '''">
@@ -167,8 +128,7 @@ class EPub:
 <body>''')
 
 			# write the Markdowned text
-			curled = curl_quotes(sourcetext)
-			htmltext = markdown2.markdown(curled)
+			htmltext = smartyPants(markdown2.markdown(sourcetext))
 			f.write(htmltext.encode('utf-8'))
 
 			# write HTML footer
