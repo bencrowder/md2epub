@@ -3,26 +3,26 @@
 
 Title: My Sample Book, Part Two
 Author: John Doe, Jr.
-Language: en-US
+Language: en
 URL: http://bencrowder.net/books/my-sample-book-2/
-CSS: content/style.css
-Cover: content/cover.jpg
+CSS: source/style.css
+Cover: source/cover.jpg
 
 # To create a hierarchy in the table of contents, just indent (with tabs, not spaces)
 
 # Chapters
-Foreword | content/foreword.text
-Part 1 | content/part1.text
-	Chapter 1 | content/chapter_1.text
-	Chapter 2 | content/chapter_2.text
-	Chapter 3 | content/chapter_3.text
-	Chapter 4 | content/chapter_4.text
-	Chapter 5 | content/chapter_5.text
-	Chapter 6 | content/chapter_6.text
-	Chapter 7 | content/chapter_7.text
-	Chapter 8 | content/chapter_8.text
-Part 2 | content/part2.text
-	Chapter 1 | content/chapter_1.text
-	Chapter 2 | content/chapter_2.text
-	Chapter 3 | content/chapter_3.text
-	Chapter 4 | content/chapter_4.text
+Foreword | source/foreword.text
+Part 1 | source/part1.text
+	Chapter 1 | source/chapter_1.text
+	Chapter 2 | source/chapter_2.text
+	Chapter 3 | source/chapter_3.text
+	Chapter 4 | source/chapter_4.text
+	Chapter 5 | source/chapter_5.text
+	Chapter 6 | source/chapter_6.text
+	Chapter 7 | source/chapter_7.text
+	Chapter 8 | source/chapter_8.text
+Part 2 | source/part2.text
+	Chapter 1 | source/chapter_1.text
+	Chapter 2 | source/chapter_2.text
+	Chapter 3 | source/chapter_3.text
+	Chapter 4 | source/chapter_4.text
