@@ -16,6 +16,7 @@ class Chapter:
 	title = ''
 	filename = ''
 	htmlfile = ''
+	dirname = ''
 	id = ''
 	children = []
 
@@ -63,7 +64,7 @@ class EPub:
 
 			# Write it out
 			f.write('''
-		<item id="''' + id + '''" href="''' + chapter.htmlfile + '''" media-type="application/xhtml+xml" />''')
+		<item id="''' + id + '''" href="''' + chapter.dirname + '/' + chapter.htmlfile + '''" media-type="application/xhtml+xml" />''')
 			if chapter.children:
 				self.write_items(chapter.children, f, id)
 
@@ -93,7 +94,7 @@ class EPub:
 			f.write('''
 		<navPoint id="''' + id + '''" playOrder="''' + str(self.navpointcount) + '''">
 			<navLabel><text>''' + chapter.title + '''</text></navLabel>
-			<content src="''' + chapter.htmlfile + '''" />''')
+			<content src="''' + chapter.dirname + '/' + chapter.htmlfile + '''" />''')
 			self.navpointcount += 1
 			if chapter.children:
 				self.write_chapter_navpoints(chapter.children, f, id)
@@ -106,7 +107,9 @@ class EPub:
 		for chapter in children:
 			try:
 				input = open('../../' + chapter.filename, 'r')
-				f = open(chapter.htmlfile, 'w')
+				if not os.path.exists(chapter.dirname):
+					os.mkdir(chapter.dirname)
+				f = open(chapter.dirname + '/' + chapter.htmlfile, 'w')
 			except:
 				print 'Error reading file "%s" from table of contents.' % chapter.filename
 				sys.exit(-1)
@@ -121,7 +124,7 @@ class EPub:
 <head>
 <title>''' + self.title + '''</title>''')
 			if self.css:
-				f.write('\n\t<link rel="stylesheet" type="text/css" href="' + os.path.basename(self.css) + '" />')
+				f.write('\n\t<link rel="stylesheet" type="text/css" href="../' + self.css + '" />')
 			f.write('''
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" /> 
 </head>
@@ -192,14 +195,14 @@ class EPub:
 ''')
 
 			if self.css:
-				f.write('\t\t<item id="style" href="' + os.path.basename(self.css) + '" media-type="application/css" />')
+				f.write('\t\t<item id="style" href="' + self.css + '" media-type="application/css" />')
 
 			if self.cover:
 				imagefile = os.path.basename(self.cover)
 				ext = os.path.splitext(imagefile)[1][1:]	# get the extension
 				if ext == 'jpg':
 					ext = 'jpeg'
-				f.write('\t\t<item id="book-cover" href="' + imagefile + '" media-type="image/' + ext + '" />')
+				f.write('\t\t<item id="book-cover" href="' + self.cover + '" media-type="image/' + ext + '" />')
 
 			# write the <item> tags
 			self.write_items(self.children, f, '')
@@ -267,7 +270,11 @@ class EPub:
 				css = open('../../' + self.css, 'r')
 				csstext = css.read()
 				css.close()
-				f = open(os.path.basename(self.css), 'w')
+
+				cssdir = os.path.dirname(self.css)
+				if not os.path.exists(cssdir):
+					os.mkdir(cssdir)
+				f = open(self.css, 'w')
 				f.write(csstext)
 				f.close()
 
@@ -276,13 +283,17 @@ class EPub:
 				if not os.path.exists('../../' + self.cover):
 					print "Cover art file doesn't exist."
 					sys.exit(-1)
-				dest = os.path.basename(self.cover)
-				shutil.copyfile('../../' + self.cover, dest)
+				destdir = os.path.dirname(self.cover)
+				if not os.path.exists(destdir):
+					os.mkdir(destdir)
+				shutil.copyfile('../../' + self.cover, self.cover)
 
 			# copy images into the directory
 			for image in self.images:
-				dest = os.path.basename(image)
-				shutil.copyfile('../../' + image, dest)
+				destdir = os.path.dirname(image)
+				if not os.path.exists(destdir):
+					os.mkdir(destdir)
+				shutil.copyfile('../../' + image, image)
 
 			# now zip the ePub up
 			os.chdir('../..')
@@ -291,8 +302,10 @@ class EPub:
 
 			file.write('mimetype','mimetype', zipfile.ZIP_STORED)
 			file.write('META-INF/container.xml', 'META-INF/container.xml', zipfile.ZIP_DEFLATED)
-			for filename in glob.glob("OEBPS/*"):
-				file.write(filename, filename, zipfile.ZIP_DEFLATED)
+			for root, dirs, filenames in os.walk('OEBPS'):
+				for filename in filenames:
+					filename = os.path.join(root, filename)
+					file.write(filename, filename, zipfile.ZIP_DEFLATED)
 
 			# and remove the directory
 			os.chdir('..')
@@ -361,6 +374,7 @@ def process_book(filename):
 			# replace extension with .html
 			basename = os.path.basename(chapter.filename)
 			chapter.htmlfile = os.path.splitext(basename)[0] + '.html'
+			chapter.dirname = os.path.dirname(chapter.filename)
 
 			# for the ID, lowercase it all, strip punctuation, and replace spaces with underscores
 			chapter.id = re.sub(r'[^a-zA-Z0-9]', r'', chapter.title.lower()).replace(' ', '_')
@@ -390,112 +404,6 @@ def process_book(filename):
 	epub.bookid = '[' + epub.title + '|' + epub.author + ']'
 
 	return epub
-
-
-##### Convert straight quotes to curly ones
-# Code expanded from educateQuotes() in Chad Miller's smartypants.py
-#	(http://web.chad.org/projects/smartypants.py/smartypants.py-1.5_1.6)
-# which in turn is a port of John Gruber's SmartyPants plugin
-
-def curl_quotes(str):
-	oldstr = str
-	punct_class = r"""[!"#\$\%'()*+,-.\/:;<=>?\@\[\\\]\^_`{|}~]"""
-
-	# Take care of quotes in html tags (<div class="poetry">, etc.)
-	str = re.sub(r"""<(.*?)="(.*?)">""", r"""<\1=~~~\2~~~>""", str)
-
-	# Special case for 'Twas and 'Tis
-	str = re.sub(r"""'Twas""", r"""&#8217;Twas""", str)
-	str = re.sub(r"""'twas""", r"""&#8217;twas""", str)
-	str = re.sub(r"""'Tis""", r"""&#8217;Tis""", str)
-	str = re.sub(r"""'tis""", r"""&#8217;tis""", str)
-
-	# Special case if the very first character is a quote followed by
-	# punctuation at a non-word-break. Close the quotes by brute force:
-	str = re.sub(r"""^'(?=%s\\B)""" % (punct_class,), r"""&#8217;""", str)
-	str = re.sub(r"""^"(?=%s\\B)""" % (punct_class,), r"""&#8221;""", str)
-
-	# Special case for double sets of quotes, e.g.:
-	#   <p>He said, "'Quoted' words in a larger quote."</p>
-	str = re.sub(r""""'(?=\w)""", """&#8220;&#8216;""", str)
-	str = re.sub(r"""'"(?=\w)""", """&#8216;&#8220;""", str)
-
-	# Special case for decade abbreviations (the '80s):
-	str = re.sub(r"""\b'(?=\d{2}s)""", r"""&#8217;""", str)
-
-	close_class = r"""[^\ \t\r\n\[\{\(\-]"""
-	dec_dashes = r"""&#8211;|&#8212;"""
-
-	# Get most opening single quotes:
-	opening_single_quotes_regex = re.compile(r"""
-		(
-		\s          |   # a whitespace char, or
-		&nbsp;      |   # a non-breaking space entity, or
-		--          |   # dashes, or
-		&[mn]dash;  |   # named dash entities
-		\xe2\x80\x94  | # encoded em-dash
-		_	        |   # underscore (for italic)
-		>	        |   # HTML tag
-		%s          |   # or decimal entities
-		&\#x201[34];    # or hex
-		)
-		'                 # the quote
-		(?=\w)            # followed by a word character
-		""" % (dec_dashes,), re.VERBOSE)
-	str = opening_single_quotes_regex.sub(r"""\1&#8216;""", str)
-
-	closing_single_quotes_regex = re.compile(r"""
-		(%s)
-		'
-		(?!\s | s\b | \d)
-		""" % (close_class,), re.VERBOSE)
-	str = closing_single_quotes_regex.sub(r"""\1&#8217;""", str)
-
-	# hand's
-	str = re.sub(r"(.)'(.)", r"\1&#8217;\2", str)
-
-	# Any remaining single quotes should be opening ones:
-	str = re.sub(r"""'""", r"""&#8216;""", str)
-
-	# Get most opening double quotes:
-	opening_double_quotes_regex = re.compile(r"""
-		(
-		\s          |   # a whitespace char, or
-		&nbsp;      |   # a non-breaking space entity, or
-		--			|	# dashes, or
-		&[mn]dash;  |   # named dash entities
-		\xe2\x80\x94  | # encoded em-dash
-		_	        |   # underscore (for italic)
-		>	        |   # HTML tag
-		%s          |   # or decimal entities
-		&\#x201[34];    # or hex
-		)
-		"                 # the quote
-		(?=\w)            # followed by a word character
-		""" % (dec_dashes,), re.VERBOSE)
-	str = opening_double_quotes_regex.sub(r"""\1&#8220;""", str)
-
-	# Double closing quotes:
-	closing_double_quotes_regex = re.compile(r"""
-		#(%s)?   # character that indicates the quote should be closing
-		"
-		(?=\s)
-		""" % (close_class,), re.VERBOSE)
-	str = closing_double_quotes_regex.sub(r"""&#8221;""", str)
-
-	closing_double_quotes_regex = re.compile(r"""
-		(%s)   # character that indicates the quote should be closing
-		"
-		""" % (close_class,), re.VERBOSE)
-	str = closing_double_quotes_regex.sub(r"""\1&#8221;""", str)
-
-	# Any remaining quotes should be opening ones.
-	str = re.sub(r'"', r"""&#8220;""", str)
-
-	# Take care of quotes in html tags (<div class="poetry">, etc.)
-	str = re.sub(r"""~~~""", r'"', str)
-
-	return str
 
 
 ##### Main
