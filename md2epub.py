@@ -213,7 +213,7 @@ class EPub:
 				if ext == 'jpg':
 					ext = 'jpeg'
 				f.write('''
-		<item id="''' + imagefile + '''" href="''' + imagefile + '''" media-type="image/''' + ext + '''" />''')
+		<item id="''' + imagefile + '''" href="''' + image + '''" media-type="image/''' + ext + '''" />''')
 
 			f.write('''
 	</manifest>
