@@ -42,9 +42,25 @@ class EPub:
 	chapterids = []
 	maxdepth = 1
 
+	def __init__(self):
+		self.title = ''
+		self.author = ''
+		self.basename = ''
+		self.path = ''
+		self.bookid = ''
+		self.url = ''
+		self.css = ''
+		self.cover = ''
+		self.toc = ''
+		self.lang = 'en-US'
+		self.images = []
+		self.children = []
+		self.chapterids = []
+		self.navpointcount = 1
+		self.maxdepth = 1
+
 	def cleanup(self):
 		os.rmdir(self.path)
-
 
 	# takes a list of chapters and writes the <item> tags for them and their children
 	def write_items(self, children, f, pre):
@@ -310,6 +326,9 @@ class EPub:
 			# and remove the directory
 			os.chdir('..')
 			shutil.rmtree(self.path)
+
+			# fix for Windows file handle locking
+			os.chdir(cwd)
 		except:
 			print "Unexpected error: ", sys.exc_info()[0]
 
